@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "code-review-env"
+version = "0.1.0"
+description = "OpenEnv-compatible RL environment for fixing buggy Python code"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "OpenEnv Hackathon" }]
+dependencies = [
+  "fastapi>=0.115.0",
+  "openai>=2.7.2",
+  "openenv-core>=0.2.3",
+  "pydantic>=2.7.0",
+  "requests>=2.32.0",
+  "uvicorn[standard]>=0.30.0",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["code_review_env*"]
