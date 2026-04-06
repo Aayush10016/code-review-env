@@ -18,8 +18,11 @@ dependencies = [
   "uvicorn[standard]>=0.30.0",
 ]
 
+[project.scripts]
+server = "server.app:main"
+
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["code_review_env*"]
+include = ["code_review_env*", "server*"]
