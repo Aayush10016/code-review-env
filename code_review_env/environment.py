@@ -11,6 +11,8 @@ from .models import (
     CodeFixAction,
     CodeReviewObservation,
     CodeReviewState,
+    MAX_VALID_REWARD,
+    MIN_VALID_REWARD,
     MIN_VALID_SCORE,
     RewardSignal,
     TaskDescriptor,
@@ -19,6 +21,10 @@ from .models import (
 from .tasks import select_task
 
 SOLVED_SCORE = 0.99
+
+
+def _normalize_reward(reward: float) -> float:
+    return min(max(round(reward, 4), MIN_VALID_REWARD), MAX_VALID_REWARD)
 
 
 class CodeReviewEnvironment(
@@ -71,7 +77,7 @@ class CodeReviewEnvironment(
             max_steps=max_steps or self._task.max_steps,
             previous_score=MIN_VALID_SCORE,
             best_score=MIN_VALID_SCORE,
-            last_reward=0.0,
+            last_reward=MIN_VALID_REWARD,
             last_reward_signal=None,
             latest_grade=None,
             history=[],
@@ -99,7 +105,7 @@ class CodeReviewEnvironment(
 
         if self._state.step_count >= self._state.max_steps:
             return self._build_observation(
-                reward=0.0,
+                reward=MIN_VALID_REWARD,
                 done=True,
                 feedback=["The current episode has ended. Call reset() to start a new one."],
             )
@@ -110,7 +116,7 @@ class CodeReviewEnvironment(
             timeout_s=timeout_s or self.default_timeout_s,
         )
         next_step = self._state.step_count + 1
-        reward = round(report.score - self._state.previous_score, 4)
+        reward = _normalize_reward(report.score - self._state.previous_score)
         done = report.score >= SOLVED_SCORE or next_step >= self._state.max_steps
         reward_signal = RewardSignal(
             reward=reward,

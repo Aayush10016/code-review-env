@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from .compat import Action, Observation, State
 
 MIN_VALID_SCORE = 0.01
+MIN_VALID_REWARD = 0.01
+MAX_VALID_REWARD = 0.99
 
 
 class TaskDifficulty(str, Enum):
@@ -123,7 +125,7 @@ class CodeReviewState(State):
     max_steps: int = Field(default=0, ge=0)
     previous_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
     best_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
-    last_reward: float = 0.0
+    last_reward: float = MIN_VALID_REWARD
     last_reward_signal: Optional[RewardSignal] = None
     latest_grade: Optional[GradeReport] = None
     history: list[AttemptRecord] = Field(default_factory=list)
