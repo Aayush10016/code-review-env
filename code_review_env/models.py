@@ -7,6 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .compat import Action, Observation, State
 
+MIN_VALID_SCORE = 0.01
+
 
 class TaskDifficulty(str, Enum):
     EASY = "easy"
@@ -101,8 +103,8 @@ class CodeReviewObservation(Observation):
     buggy_code: str = Field(min_length=1)
     current_code: str = Field(min_length=1)
     feedback: list[str] = Field(default_factory=list)
-    score: float = Field(default=0.0, ge=0.0, le=1.0)
-    best_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
+    best_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
     tests_passed: int = Field(default=0, ge=0)
     total_tests: int = Field(default=0, ge=0)
     remaining_steps: int = Field(default=0, ge=0)
@@ -119,8 +121,8 @@ class CodeReviewState(State):
     buggy_code: str = ""
     current_code: str = ""
     max_steps: int = Field(default=0, ge=0)
-    previous_score: float = Field(default=0.0, ge=0.0, le=1.0)
-    best_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    previous_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
+    best_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
     last_reward: float = 0.0
     last_reward_signal: Optional[RewardSignal] = None
     latest_grade: Optional[GradeReport] = None
