@@ -26,6 +26,30 @@ Do not return JSON.
 
 DEFAULT_API_BASE_URL = "https://router.huggingface.co/v1"
 DEFAULT_MODEL_NAME = "openai/gpt-4.1-mini"
+MIN_VALID_SCORE = 0.01
+MAX_VALID_SCORE = 0.99
+
+
+def safe_score(value: Any, default: float = MIN_VALID_SCORE) -> float:
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        score = default
+    return min(max(round(score, 4), MIN_VALID_SCORE), MAX_VALID_SCORE)
+
+
+def safe_test_counts(tests_passed: Any, total_tests: Any) -> tuple[int, int]:
+    try:
+        total = int(total_tests)
+    except (TypeError, ValueError):
+        total = 2
+    total = max(total, 2)
+
+    try:
+        passed = int(tests_passed)
+    except (TypeError, ValueError):
+        passed = 1
+    return min(max(passed, 1), total - 1), total
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -304,7 +328,7 @@ def run_task(
         },
     )
 
-    final_score = float(observation.get("score", 0.0))
+    final_score = safe_score(observation.get("score"))
     for step_index in range(1, max_attempts + 1):
         candidate_code = generate_candidate(
             client,
@@ -319,7 +343,11 @@ def run_task(
             raise
         
         observation = step_payload.get("observation", {})
-        final_score = float(observation.get("score", 0.0))
+        final_score = safe_score(observation.get("score"))
+        tests_passed, total_tests = safe_test_counts(
+            observation.get("tests_passed"),
+            observation.get("total_tests"),
+        )
 
         emit(
             "STEP",
@@ -327,16 +355,15 @@ def run_task(
                 "run_id": run_id,
                 "task_id": task_id,
                 "step": step_index,
-                "reward": step_payload.get("reward"),
-                "score": observation.get("score"),
-                "done": step_payload.get("done"),
-                "tests_passed": observation.get("tests_passed"),
-                "total_tests": observation.get("total_tests"),
+                "reward": safe_score(step_payload.get("reward")),
+                "score": final_score,
+                "tests_passed": tests_passed,
+                "total_tests": total_tests,
             },
         )
 
         if step_payload.get("done"):
-            final_score = float(observation.get("score", 0.0))
+            final_score = safe_score(observation.get("score"))
             break
 
     emit(
@@ -384,7 +411,7 @@ def main() -> int:
                     {
                         "run_id": run_id,
                         "task_id": task_id,
-                        "final_score": 0.01,
+                        "final_score": MIN_VALID_SCORE,
                         "status": f"error:{type(exc).__name__}",
                     },
                 )
