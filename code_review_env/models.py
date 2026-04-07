@@ -41,7 +41,7 @@ class TaskDescriptor(BaseModel):
 
 class CheckResult(BaseModel):
     name: str = Field(min_length=1)
-    weight: float = Field(ge=0.0, le=1.0)
+    weight: float = Field(gt=0.0, lt=1.0)
     passed: bool
     feedback: str = Field(min_length=1)
     category: Literal["syntax", "contract", "tests", "runtime", "timeout"] = (
@@ -51,10 +51,10 @@ class CheckResult(BaseModel):
 
 class GradeReport(BaseModel):
     task_id: str = Field(min_length=1)
-    score: float = Field(ge=0.0, le=1.0)
+    score: float = Field(gt=0.0, lt=1.0)
     compile_success: bool
-    tests_passed: int = Field(default=0, ge=0)
-    total_tests: int = Field(default=0, ge=0)
+    tests_passed: int = Field(default=1, ge=0)
+    total_tests: int = Field(default=2, ge=1)
     summary: str = Field(min_length=1)
     checks: list[CheckResult] = Field(default_factory=list)
     feedback: list[str] = Field(default_factory=list)
@@ -65,17 +65,17 @@ class GradeReport(BaseModel):
 
 
 class RewardSignal(BaseModel):
-    reward: float
-    current_score: float = Field(ge=0.0, le=1.0)
-    previous_score: float = Field(ge=0.0, le=1.0)
-    best_score: float = Field(ge=0.0, le=1.0)
+    reward: float = Field(gt=0.0, lt=1.0)
+    current_score: float = Field(gt=0.0, lt=1.0)
+    previous_score: float = Field(gt=0.0, lt=1.0)
+    best_score: float = Field(gt=0.0, lt=1.0)
     solved: bool = False
 
 
 class AttemptRecord(BaseModel):
     step_index: int = Field(ge=1)
-    score: float = Field(ge=0.0, le=1.0)
-    reward: float
+    score: float = Field(gt=0.0, lt=1.0)
+    reward: float = Field(gt=0.0, lt=1.0)
     summary: str = Field(min_length=1)
     failing_checks: list[str] = Field(default_factory=list)
 
@@ -98,6 +98,7 @@ class CodeFixAction(Action):
 
 
 class CodeReviewObservation(Observation):
+    reward: float = Field(default=MIN_VALID_REWARD, gt=0.0, lt=1.0)
     task_id: str = Field(min_length=1)
     difficulty: TaskDifficulty
     title: str = Field(min_length=1)
@@ -105,10 +106,10 @@ class CodeReviewObservation(Observation):
     buggy_code: str = Field(min_length=1)
     current_code: str = Field(min_length=1)
     feedback: list[str] = Field(default_factory=list)
-    score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
-    best_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
-    tests_passed: int = Field(default=0, ge=0)
-    total_tests: int = Field(default=0, ge=0)
+    score: float = Field(default=MIN_VALID_SCORE, gt=0.0, lt=1.0)
+    best_score: float = Field(default=MIN_VALID_SCORE, gt=0.0, lt=1.0)
+    tests_passed: int = Field(default=1, ge=0)
+    total_tests: int = Field(default=2, ge=1)
     remaining_steps: int = Field(default=0, ge=0)
     public_examples: list[str] = Field(default_factory=list)
     score_breakdown: list[CheckResult] = Field(default_factory=list)
@@ -123,9 +124,9 @@ class CodeReviewState(State):
     buggy_code: str = ""
     current_code: str = ""
     max_steps: int = Field(default=0, ge=0)
-    previous_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
-    best_score: float = Field(default=MIN_VALID_SCORE, ge=0.0, le=1.0)
-    last_reward: float = MIN_VALID_REWARD
+    previous_score: float = Field(default=MIN_VALID_SCORE, gt=0.0, lt=1.0)
+    best_score: float = Field(default=MIN_VALID_SCORE, gt=0.0, lt=1.0)
+    last_reward: float = Field(default=MIN_VALID_REWARD, gt=0.0, lt=1.0)
     last_reward_signal: Optional[RewardSignal] = None
     latest_grade: Optional[GradeReport] = None
     history: list[AttemptRecord] = Field(default_factory=list)
