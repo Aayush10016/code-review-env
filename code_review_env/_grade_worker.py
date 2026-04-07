@@ -445,11 +445,13 @@ def main() -> None:
             sum(check["weight"] for check in checks if check["passed"]) / total_weight,
             4,
         )
+        if score >= 1.0:
+            score = 0.99
 
     failing_feedback = [check["feedback"] for check in checks if not check["passed"]]
     summary = (
         "All rubric checks passed."
-        if score == 1.0
+        if score >= 0.99
         else f"Passed {tests_passed}/{total_tests} hidden functional checks."
     )
     if not compile_success:

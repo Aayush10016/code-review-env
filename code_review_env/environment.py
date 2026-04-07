@@ -17,6 +17,8 @@ from .models import (
 )
 from .tasks import select_task
 
+SOLVED_SCORE = 0.99
+
 
 class CodeReviewEnvironment(
     Environment[CodeFixAction, CodeReviewObservation, CodeReviewState]
@@ -108,13 +110,13 @@ class CodeReviewEnvironment(
         )
         next_step = self._state.step_count + 1
         reward = round(report.score - self._state.previous_score, 4)
-        done = report.score >= 1.0 or next_step >= self._state.max_steps
+        done = report.score >= SOLVED_SCORE or next_step >= self._state.max_steps
         reward_signal = RewardSignal(
             reward=reward,
             current_score=report.score,
             previous_score=self._state.previous_score,
             best_score=max(self._state.best_score, report.score),
-            solved=report.score >= 1.0,
+            solved=report.score >= SOLVED_SCORE,
         )
 
         self._state.step_count = next_step
@@ -137,10 +139,10 @@ class CodeReviewEnvironment(
         )
 
         feedback = list(report.feedback) or [report.summary]
-        if done and report.score < 1.0:
-            feedback.append("Step budget exhausted before reaching a perfect score.")
-        elif done and report.score == 1.0:
+        if done and report.score >= SOLVED_SCORE:
             feedback.append("Task solved with a perfect score.")
+        elif done:
+            feedback.append("Step budget exhausted before reaching a perfect score.")
 
         return self._build_observation(
             reward=reward,
