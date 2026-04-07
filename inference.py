@@ -319,12 +319,8 @@ def run_task(
     emit(
         "START",
         {
-            "run_id": run_id,
             "task_id": task_id,
             "difficulty": task.difficulty.value,
-            "model_name": model_name,
-            "api_base_url": api_base_url,
-            "env_base_url": env_base_url,
         },
     )
 
@@ -352,13 +348,8 @@ def run_task(
         emit(
             "STEP",
             {
-                "run_id": run_id,
                 "task_id": task_id,
-                "step": step_index,
-                "reward": safe_score(step_payload.get("reward")),
                 "score": final_score,
-                "tests_passed": tests_passed,
-                "total_tests": total_tests,
             },
         )
 
@@ -369,8 +360,8 @@ def run_task(
     emit(
         "END",
         {
-            "run_id": run_id,
             "task_id": task_id,
+            "score": final_score,
             "final_score": final_score,
             "status": "completed",
         },
@@ -409,8 +400,8 @@ def main() -> int:
                 emit(
                     "END",
                     {
-                        "run_id": run_id,
                         "task_id": task_id,
+                        "score": MIN_VALID_SCORE,
                         "final_score": MIN_VALID_SCORE,
                         "status": f"error:{type(exc).__name__}",
                     },
