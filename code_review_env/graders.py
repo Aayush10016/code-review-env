@@ -11,12 +11,18 @@ from .models import CheckResult, GradeReport, TaskDescriptor
 from .tasks import get_task
 
 WORKER_PATH = Path(__file__).with_name("_grade_worker.py")
+MIN_VALID_SCORE = 0.01
+MAX_VALID_SCORE = 0.99
+
+
+def _clamp_score(score: float) -> float:
+    return min(max(round(score, 4), MIN_VALID_SCORE), MAX_VALID_SCORE)
 
 
 def _timeout_report(task: TaskDescriptor, timeout_s: float) -> GradeReport:
     return GradeReport(
         task_id=task.task_id,
-        score=0.0,
+        score=MIN_VALID_SCORE,
         compile_success=False,
         tests_passed=0,
         total_tests=0,
@@ -43,7 +49,7 @@ def _timeout_report(task: TaskDescriptor, timeout_s: float) -> GradeReport:
 def _worker_failure_report(task: TaskDescriptor, stderr: str) -> GradeReport:
     return GradeReport(
         task_id=task.task_id,
-        score=0.0,
+        score=MIN_VALID_SCORE,
         compile_success=False,
         tests_passed=0,
         total_tests=0,
@@ -94,6 +100,7 @@ def _grade_with_worker(
         except json.JSONDecodeError:
             return _worker_failure_report(task, completed.stderr or stdout)
 
+    payload["score"] = _clamp_score(float(payload.get("score", 0.0)))
     payload["checks"] = [CheckResult(**check) for check in payload["checks"]]
     return GradeReport(**payload)
 

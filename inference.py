@@ -384,7 +384,7 @@ def main() -> int:
                     {
                         "run_id": run_id,
                         "task_id": task_id,
-                        "final_score": 0.0,
+                        "final_score": 0.01,
                         "status": f"error:{type(exc).__name__}",
                     },
                 )

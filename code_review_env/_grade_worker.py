@@ -8,6 +8,9 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
+MIN_VALID_SCORE = 0.01
+MAX_VALID_SCORE = 0.99
+
 
 def record(
     checks: list[dict[str, Any]],
@@ -445,8 +448,7 @@ def main() -> None:
             sum(check["weight"] for check in checks if check["passed"]) / total_weight,
             4,
         )
-        if score >= 1.0:
-            score = 0.99
+    score = min(max(score, MIN_VALID_SCORE), MAX_VALID_SCORE)
 
     failing_feedback = [check["feedback"] for check in checks if not check["passed"]]
     summary = (
