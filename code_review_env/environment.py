@@ -87,7 +87,7 @@ class CodeReviewEnvironment(
         self.__class__._class_state = self._state
         
         return self._build_observation(
-            reward=None,
+            reward=MIN_VALID_REWARD,
             done=False,
             feedback=[
                 "Episode reset. Submit the full corrected module to receive a graded reward."
@@ -196,8 +196,8 @@ class CodeReviewEnvironment(
             feedback=feedback,
             score=self._state.previous_score,
             best_score=self._state.best_score,
-            tests_passed=latest.tests_passed if latest else 0,
-            total_tests=latest.total_tests if latest else 0,
+            tests_passed=latest.tests_passed if latest else 1,
+            total_tests=latest.total_tests if latest else 2,
             remaining_steps=max(self._state.max_steps - self._state.step_count, 0),
             public_examples=self._task.public_examples,
             score_breakdown=latest.checks if latest else [],

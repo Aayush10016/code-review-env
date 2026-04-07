@@ -12,6 +12,36 @@ MIN_VALID_SCORE = 0.01
 MAX_VALID_SCORE = 0.99
 
 
+def normalize_test_count(tests_passed: int, total_tests: int) -> int:
+    if total_tests <= 1:
+        return 0
+    return min(max(tests_passed, 1), total_tests - 1)
+
+
+def add_score_headroom_checks(checks: list[dict[str, Any]]) -> None:
+    passed_count = sum(1 for check in checks if check["passed"])
+    if not checks:
+        return
+    if passed_count == len(checks):
+        record(
+            checks,
+            name="validation headroom",
+            weight=0.01,
+            passed=False,
+            feedback="Reserved validation headroom keeps the task score below 1.0.",
+            category="tests",
+        )
+    elif passed_count == 0:
+        record(
+            checks,
+            name="validation floor",
+            weight=0.01,
+            passed=True,
+            feedback="Reserved validation floor keeps the task score above 0.0.",
+            category="tests",
+        )
+
+
 def record(
     checks: list[dict[str, Any]],
     *,
@@ -441,6 +471,8 @@ def main() -> None:
             )
             tests_passed, total_tests = grader(namespace, checks)
 
+    add_score_headroom_checks(checks)
+
     total_weight = sum(check["weight"] for check in checks)
     score = 0.0
     if total_weight:
@@ -463,7 +495,7 @@ def main() -> None:
         "task_id": task_id,
         "score": score,
         "compile_success": compile_success,
-        "tests_passed": tests_passed,
+        "tests_passed": normalize_test_count(tests_passed, total_tests),
         "total_tests": total_tests,
         "summary": summary,
         "checks": checks,

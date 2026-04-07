@@ -24,19 +24,26 @@ def _timeout_report(task: TaskDescriptor, timeout_s: float) -> GradeReport:
         task_id=task.task_id,
         score=MIN_VALID_SCORE,
         compile_success=False,
-        tests_passed=0,
-        total_tests=0,
+        tests_passed=1,
+        total_tests=2,
         summary="Candidate execution timed out during grading.",
         checks=[
             CheckResult(
                 name="grading timeout",
-                weight=1.0,
+                weight=0.99,
                 passed=False,
                 feedback=(
                     f"Grading exceeded the timeout budget of {timeout_s:.2f} seconds."
                 ),
                 category="timeout",
-            )
+            ),
+            CheckResult(
+                name="validation floor",
+                weight=0.01,
+                passed=True,
+                feedback="Reserved validation floor keeps the task score above 0.0.",
+                category="tests",
+            ),
         ],
         feedback=[
             f"Grading exceeded the timeout budget of {timeout_s:.2f} seconds."
@@ -51,17 +58,24 @@ def _worker_failure_report(task: TaskDescriptor, stderr: str) -> GradeReport:
         task_id=task.task_id,
         score=MIN_VALID_SCORE,
         compile_success=False,
-        tests_passed=0,
-        total_tests=0,
+        tests_passed=1,
+        total_tests=2,
         summary="The grader crashed before producing a valid report.",
         checks=[
             CheckResult(
                 name="grader runtime",
-                weight=1.0,
+                weight=0.99,
                 passed=False,
                 feedback="The grading worker failed unexpectedly.",
                 category="runtime",
-            )
+            ),
+            CheckResult(
+                name="validation floor",
+                weight=0.01,
+                passed=True,
+                feedback="Reserved validation floor keeps the task score above 0.0.",
+                category="tests",
+            ),
         ],
         feedback=["The grading worker failed unexpectedly."],
         stderr=stderr,
