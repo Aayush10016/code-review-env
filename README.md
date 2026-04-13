@@ -256,7 +256,7 @@ Current reproducible baseline scores from `python inference.py --max-attempts 1`
 - `reset()`, `step()`, `state()`
 - 3 deterministic tasks with easy, medium, hard progression
 - shaped rewards with partial progress signals
-- `/tasks` and `/validate` helper endpoint
+- `/tasks` and `/validate` helper endpoints
 
 ## Sources
 
